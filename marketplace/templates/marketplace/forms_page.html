@@ -1,0 +1,39 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Forms — Add Crop Listing, Place Order &amp; Add Advisory</h2>
+
+{% if saved_message %}
+<div class="msg-ok">{{ saved_message }}</div>
+{% endif %}
+
+<div class="card">
+    <h3>1. Add Crop Listing</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="crop_listing">
+        {{ listing_form.as_p }}
+        <button type="submit" class="btn">Save Crop Listing</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>2. Place Order (Auto Total Amount &amp; Stock Deduction)</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="order">
+        {{ order_form.as_p }}
+        <button type="submit" class="btn">Place Order</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>3. Add Crop Advisory</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="crop_advisory">
+        {{ advisory_form.as_p }}
+        <button type="submit" class="btn">Save Advisory</button>
+    </form>
+</div>
+{% endblock %}

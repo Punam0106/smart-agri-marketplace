@@ -1,0 +1,123 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Buyer Workspace</h2>
+
+{% if error_message %}
+<div class="msg-err">{{ error_message }}</div>
+{% endif %}
+
+{% if saved_message %}
+<div class="msg-ok">{{ saved_message }}</div>
+{% endif %}
+
+{% if logged_in_buyer %}
+<div class="card">
+    <h3>Buyer Account — {{ logged_in_buyer.full_name }}</h3>
+    <p class="meta">Phone: {{ logged_in_buyer.phone }} | Market Location: {{ logged_in_buyer.location|default:"-" }}</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <a href="{% url 'available_products' %}" class="btn">Browse Available Products</a>
+        <a href="{% url 'market_rates' %}" class="btn btn-secondary">Market Yard &amp; Quality Rates</a>
+        <a href="{% url 'orders_status' %}" class="btn btn-secondary">Order / Delivery Tracking</a>
+        <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="logout">
+            <button type="submit" class="btn btn-secondary">Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Quick Place Order (Choose Crop, Quality &amp; Farmer Source)</h3>
+    <p class="meta">Every listing shows the farmer source, farming type (Organic/Inorganic), and quality grade.</p>
+    <form method="post" action="{% url 'forms_hub' %}">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="order">
+        <input type="hidden" name="buyer" value="{{ logged_in_buyer.id }}">
+        <p>
+            <label>Select Crop &amp; Farmer:
+                <select name="listing" required style="max-width:100%;">
+                    {% for item in available_listings %}
+                    <option value="{{ item.id }}">
+                        {{ item.crop_name }} [{{ item.get_farming_type_display }} | {{ item.get_quality_grade_display }}] — ₹{{ item.price_per_unit }}/{{ item.unit|default:"kg" }}
+                        | Farmer: {{ item.farmer.full_name }}{% if item.farmer.location %} ({{ item.farmer.location }}){% endif %}
+                        | Stock: {{ item.quantity_available }} {{ item.unit|default:"kg" }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+        </p>
+        <p>
+            <label>Quantity:
+                <input type="number" step="0.01" name="quantity" required placeholder="e.g. 25">
+            </label>
+            <button type="submit" class="btn" style="margin-left:10px;">Place Order</button>
+        </p>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Your Ordered Products Tracking</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Crop</th>
+                <th>Type &amp; Grade</th>
+                <th>Farmer Source</th>
+                <th>Quantity</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ord in buyer_orders %}
+            <tr>
+                <td>#{{ ord.id }}</td>
+                <td><strong>{{ ord.listing.crop_name }}</strong></td>
+                <td>{{ ord.listing.get_farming_type_display }} • {{ ord.listing.get_quality_grade_display }}</td>
+                <td>{{ ord.listing.farmer.full_name }}{% if ord.listing.farmer.location %} ({{ ord.listing.farmer.location }}){% endif %}</td>
+                <td>{{ ord.quantity }} {{ ord.listing.unit|default:"kg" }}</td>
+                <td>₹{{ ord.total_amount }}</td>
+                <td><strong>{{ ord.status }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">You have not placed any orders yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="two-col">
+    <div class="card">
+        <h3>Buyer Login</h3>
+        <form method="post">
+            {% csrf_token %}
+            <p><label>Phone Number:<br><input type="text" name="phone" required placeholder="e.g. 9822001103" style="width:100%;"></label></p>
+            <p><label>Password / PIN:<br><input type="password" name="password" required placeholder="e.g. 1234" style="width:100%;"></label></p>
+            <button type="submit" class="btn">Login as Buyer</button>
+        </form>
+        <p class="meta" style="margin-top:12px;">
+            Demo PIN/Password: <code>1234</code><br>
+            Registered Buyers:
+            {% for b in buyers_list %}
+                {{ b.full_name }} (<code>{{ b.phone }}</code>){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+
+    <div class="card">
+        <h3>New Buyer Registration</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="register_buyer">
+            <p><label>Full Name / Trader Name:<br><input type="text" name="full_name" required placeholder="e.g. Priya Sharma" style="width:100%;"></label></p>
+            <p><label>Phone Number:<br><input type="text" name="phone" required placeholder="e.g. 9822001188" style="width:100%;"></label></p>
+            <p><label>City / Market Location:<br><input type="text" name="location" placeholder="e.g. Pune" style="width:100%;"></label></p>
+            <p><label>Create Password / PIN:<br><input type="password" name="password" placeholder="Default: 1234" style="width:100%;"></label></p>
+            <button type="submit" class="btn">Register &amp; Open Buyer Page</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Overview</h2>
+<p class="meta">Use the navigation bar above to manage crops, check mandi rates, or track orders.</p>
+
+{% if logged_in_farmer %}
+<div class="card">
+    <h3>Active Farmer Session — {{ logged_in_farmer.full_name }}</h3>
+    <p class="meta">
+        Location: {{ logged_in_farmer.location|default:"-" }} |
+        Your Listings: <strong>{{ farmer_listings_count }}</strong> |
+        Orders on Your Crops: <strong>{{ farmer_orders_count }}</strong>
+    </p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <a href="{% url 'farmer_login' %}" class="btn">Open Farmer Dashboard</a>
+        <a href="{% url 'market_rates' %}" class="btn btn-secondary">Market Yard Rates</a>
+        <a href="{% url 'crop_advisory' %}" class="btn btn-secondary">Crop Advisory</a>
+    </div>
+</div>
+{% elif logged_in_buyer %}
+<div class="card">
+    <h3>Active Buyer Session — {{ logged_in_buyer.full_name }}</h3>
+    <p class="meta">
+        Location: {{ logged_in_buyer.location|default:"-" }} |
+        Your Orders: <strong>{{ buyer_orders_count }}</strong>
+    </p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <a href="{% url 'buyer_login' %}" class="btn">Open Buyer Workspace</a>
+        <a href="{% url 'available_products' %}" class="btn btn-secondary">Browse Available Products</a>
+        <a href="{% url 'market_rates' %}" class="btn btn-secondary">Market Yard Rates</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="grid">
+    <div class="stat-box">
+        <div class="meta">Crop Listings (Available)</div>
+        <div class="stat-num">{{ listings_count }} ({{ available_listings_count }})</div>
+    </div>
+    <div class="stat-box">
+        <div class="meta">Orders</div>
+        <div class="stat-num">{{ orders_count }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="meta">Crop Advisories</div>
+        <div class="stat-num">{{ advisories_count }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="meta">Farmers / Buyers</div>
+        <div class="stat-num">{{ farmers_count }} / {{ buyers_count }}</div>
+    </div>
+</div>
+{% endblock %}

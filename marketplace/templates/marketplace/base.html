@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Agri-Marketplace &amp; Crop Advisory System{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f7f4;
+            color: #1f2933;
+            line-height: 1.5;
+        }
+        .topbar {
+            background: linear-gradient(90deg, #1b5e20, #2e7d32);
+            color: #fff;
+            padding: 16px 24px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+        .topbar h1 {
+            margin: 0;
+            font-size: 1.35em;
+            letter-spacing: 0.2px;
+        }
+        .topbar p {
+            margin: 4px 0 0;
+            font-size: 0.85em;
+            color: #dcedc8;
+        }
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #e8f5e9;
+            border-bottom: 1px solid #c8e6c9;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #1b5e20;
+            background: #fff;
+            border: 1px solid #a5d6a7;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.15s ease;
+        }
+        .nav a.active, .nav a:hover {
+            background: #2e7d32;
+            color: #fff;
+            border-color: #2e7d32;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 22px auto;
+            padding: 0 24px 36px;
+        }
+        h2 {
+            color: #1b5e20;
+            border-bottom: 2px solid #c8e6c9;
+            padding-bottom: 8px;
+            margin-top: 10px;
+        }
+        h3 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            margin-top: 14px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 11px 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            font-weight: 700;
+        }
+        tbody tr:hover {
+            background-color: #f9fbf9;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #dce5dc;
+            border-radius: 8px;
+            padding: 18px;
+            margin-top: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .stat-box {
+            background: #fff;
+            border: 1px solid #dce5dc;
+            border-left: 4px solid #2e7d32;
+            border-radius: 6px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .stat-num {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #1b5e20;
+            margin-top: 4px;
+        }
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            background: #1b5e20;
+            color: #fff;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        .btn:hover { background: #2e7d32; }
+        .btn-secondary { background: #52606d; }
+        .btn-secondary:hover { background: #3e4c59; }
+        .msg-ok {
+            background: #e8f5e9;
+            border: 1px solid #81c784;
+            color: #1b5e20;
+            padding: 11px 15px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-weight: 500;
+        }
+        .msg-err {
+            background: #ffebee;
+            border: 1px solid #e57373;
+            color: #b71c1c;
+            padding: 11px 15px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-weight: 500;
+        }
+        .meta { font-size: 0.88em; color: #52606d; }
+        .tag {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 0.78em;
+            font-weight: 700;
+        }
+        .tag-organic { background: #e8f5e9; color: #1b5e20; border: 1px solid #81c784; }
+        .tag-inorganic { background: #fff3e0; color: #e65100; border: 1px solid #ffb74d; }
+        .tag-grade { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+        input, select, textarea {
+            padding: 7px 9px;
+            border: 1px solid #cbd2d9;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2e7d32;
+        }
+
+        /* Welcome Modal Popup */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-backdrop.open {
+            display: flex;
+        }
+        .modal-card {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 540px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+            border-top: 6px solid #1b5e20;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: transparent;
+            border: none;
+            font-size: 1.4em;
+            color: #52606d;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close:hover { color: #1f2933; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>Smart Agri-Marketplace &amp; Crop Advisory System</h1>
+        <p>Direct Farm-to-Market Trade &amp; Crop Guidance • Connected to MySQL (<code>agri_db</code>)</p>
+    </div>
+
+    <nav class="nav">
+        <a href="{% url 'home' %}" class="{% if active_page == 'home' %}active{% endif %}">Home</a>
+        {% if request.session.farmer_id %}
+            <a href="{% url 'farmer_login' %}" class="{% if active_page == 'farmer_login' %}active{% endif %}">Farmer Dashboard</a>
+            <a href="{% url 'market_rates' %}" class="{% if active_page == 'rates' %}active{% endif %}">Market Yard Rates</a>
+            <a href="{% url 'crop_advisory' %}" class="{% if active_page == 'advisory' %}active{% endif %}">Crop Advisory</a>
+        {% elif request.session.buyer_id %}
+            <a href="{% url 'buyer_login' %}" class="{% if active_page == 'buyer_login' %}active{% endif %}">Buyer Workspace</a>
+            <a href="{% url 'available_products' %}" class="{% if active_page == 'products' %}active{% endif %}">Available Products</a>
+            <a href="{% url 'market_rates' %}" class="{% if active_page == 'rates' %}active{% endif %}">Market Yard Rates</a>
+            <a href="{% url 'orders_status' %}" class="{% if active_page == 'orders' %}active{% endif %}">Order / Delivery Status</a>
+        {% else %}
+            <a href="{% url 'farmer_login' %}" class="{% if active_page == 'farmer_login' %}active{% endif %}">Login / Register as Farmer</a>
+            <a href="{% url 'buyer_login' %}" class="{% if active_page == 'buyer_login' %}active{% endif %}">Login / Register as Buyer</a>
+        {% endif %}
+    </nav>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% if not request.session.farmer_id and not request.session.buyer_id %}
+    <div id="welcomeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+        <div class="modal-card">
+            <button type="button" class="modal-close" onclick="closeWelcomePopup()" aria-label="Close">&times;</button>
+            <h2 id="welcomeTitle" style="border:none; margin:0 0 8px 0;">Welcome to Smart Agri-Marketplace</h2>
+            <p style="margin:0 0 16px 0; color:#334e68;">
+                Welcome! Select your role below to open your dedicated workspace — farmers can manage crops, organic/inorganic listings, orders, and crop advisory, while buyers can browse products, compare quality-based mandi rates, and track orders.
+            </p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="{% url 'farmer_login' %}" class="btn">Login / Register as Farmer</a>
+                <a href="{% url 'buyer_login' %}" class="btn btn-secondary">Login / Register as Buyer</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function closeWelcomePopup() {
+            const modal = document.getElementById('welcomeModal');
+            if (modal) modal.classList.remove('open');
+            try {
+                sessionStorage.setItem('agri_welcome_seen', '1');
+            } catch (e) {}
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('welcomeModal');
+            if (!modal) return;
+
+            try {
+                if (!sessionStorage.getItem('agri_welcome_seen')) {
+                    modal.classList.add('open');
+                }
+            } catch (e) {
+                modal.classList.add('open');
+            }
+
+            modal.addEventListener('click', function (ev) {
+                if (ev.target === modal) closeWelcomePopup();
+            });
+        });
+
+        (function () {
+            const badgeColors = {
+                'AVAILABLE': { bg: '#e8f5e9', fg: '#1b5e20', bd: '#81c784' },
+                'SOLD_OUT':  { bg: '#ffebee', fg: '#b71c1c', bd: '#ef9a9a' },
+                'PENDING':   { bg: '#fff8e1', fg: '#8d6e00', bd: '#ffd54f' },
+                'CONFIRMED': { bg: '#e3f2fd', fg: '#0d47a1', bd: '#90caf9' },
+                'DELIVERED': { bg: '#e8f5e9', fg: '#1b5e20', bd: '#66bb6a' },
+                'CANCELLED': { bg: '#fce4ec', fg: '#880e4f', bd: '#f48fb1' }
+            };
+
+            document.querySelectorAll('td').forEach(function (td) {
+                if (td.querySelector('form, input, select, button, a, table')) return;
+                const txt = td.textContent.trim();
+                const style = badgeColors[txt];
+                if (!style) return;
+
+                td.innerHTML = `<span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.8em;font-weight:700;background:${style.bg};color:${style.fg};border:1px solid ${style.bd};">${txt}</span>`;
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Available Products</h2>
+
+<form method="get" class="card">
+    <label>Crop: <input type="text" name="crop" value="{{ crop_query }}" placeholder="e.g. Onion, Wheat"></label>
+    <label style="margin-left:10px;">Category: <input type="text" name="category" value="{{ category_query }}" placeholder="e.g. Grains"></label>
+    <label style="margin-left:10px;">Farming Type:
+        <select name="farming_type">
+            <option value="">All</option>
+            {% for val, label in farming_choices %}
+            <option value="{{ val }}" {% if farming_query == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label style="margin-left:10px;">Quality Grade:
+        <select name="quality_grade">
+            <option value="">All</option>
+            {% for val, label in grade_choices %}
+            <option value="{{ val }}" {% if grade_query == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit" class="btn" style="margin-left:10px;">Filter</button>
+    <a href="{% url 'available_products' %}" style="margin-left:8px;">Reset</a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Crop</th>
+            <th>Category</th>
+            <th>Farming Type</th>
+            <th>Quality Grade</th>
+            <th>Farmer &amp; Location</th>
+            <th>Rate</th>
+            <th>Available Stock</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in listings %}
+        <tr>
+            <td><strong>{{ item.crop_name }}</strong></td>
+            <td>{{ item.category|default:"-" }}</td>
+            <td>
+                {% if item.farming_type == 'ORGANIC' %}
+                <span class="tag tag-organic">Organic</span>
+                {% else %}
+                <span class="tag tag-inorganic">Inorganic</span>
+                {% endif %}
+            </td>
+            <td><span class="tag tag-grade">{{ item.get_quality_grade_display }}</span></td>
+            <td>{{ item.farmer.full_name }}{% if item.farmer.location %} ({{ item.farmer.location }}){% endif %}</td>
+            <td>₹{{ item.price_per_unit }} / {{ item.unit|default:"kg" }}</td>
+            <td>{{ item.quantity_available }} {{ item.unit|default:"kg" }}</td>
+            <td><strong>{{ item.status|default:"-" }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">No crop listings found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

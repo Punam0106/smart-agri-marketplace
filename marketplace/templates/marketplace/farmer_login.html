@@ -1,0 +1,236 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Farmer Dashboard</h2>
+
+{% if error_message %}
+<div class="msg-err">{{ error_message }}</div>
+{% endif %}
+
+{% if saved_message %}
+<div class="msg-ok">{{ saved_message }}</div>
+{% endif %}
+
+{% if logged_in_farmer %}
+<div class="card">
+    <h3>Welcome, {{ logged_in_farmer.full_name }}</h3>
+    <p class="meta">Phone: {{ logged_in_farmer.phone }} | Location: {{ logged_in_farmer.location|default:"-" }}</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <a href="{% url 'market_rates' %}" class="btn">View Market Yard Rates</a>
+        <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="logout">
+            <button type="submit" class="btn btn-secondary">Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="stat-box">
+        <div class="meta">Total Earnings (Active Orders)</div>
+        <div class="stat-num">₹{{ total_earnings }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="meta">Pending / Waiting Orders</div>
+        <div class="stat-num">{{ pending_orders_count }}</div>
+    </div>
+    <div class="stat-box" style="{% if low_stock_count > 0 %}border-left-color:#c62828;{% endif %}">
+        <div class="meta">Low Stock Alerts (&le; 50)</div>
+        <div class="stat-num" style="{% if low_stock_count > 0 %}color:#c62828;{% endif %}">{{ low_stock_count }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Add New Crop / Product Listing</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_crop">
+        <p>
+            <label>Crop Name: <input type="text" name="crop_name" required placeholder="e.g. Wheat"></label>
+            <label style="margin-left:12px;">Category: <input type="text" name="category" placeholder="e.g. Grains"></label>
+            <label style="margin-left:12px;">Farming Type:
+                <select name="farming_type">
+                    {% for val, label in farming_choices %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label style="margin-left:12px;">Quality Grade:
+                <select name="quality_grade">
+                    {% for val, label in grade_choices %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </p>
+        <p>
+            <label>Price per Unit (₹): <input type="number" step="0.01" name="price_per_unit" required placeholder="e.g. 32.00"></label>
+            <label style="margin-left:12px;">Available Qty: <input type="number" step="0.01" name="quantity_available" required placeholder="e.g. 500"></label>
+            <label style="margin-left:12px;">Unit:
+                <select name="unit">
+                    <option value="kg" selected>kg</option>
+                    <option value="quintal">quintal</option>
+                    <option value="ton">ton</option>
+                </select>
+            </label>
+            <label style="margin-left:12px;">Status:
+                <select name="status">
+                    <option value="AVAILABLE" selected>AVAILABLE</option>
+                    <option value="SOLD_OUT">SOLD_OUT</option>
+                </select>
+            </label>
+        </p>
+        <button type="submit" class="btn">Publish Crop Listing</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Your Crop Listings</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Crop</th>
+                <th>Category</th>
+                <th>Farming Type</th>
+                <th>Quality Grade</th>
+                <th>Rate</th>
+                <th>Available Qty</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in farmer_listings %}
+            <tr>
+                <td><strong>{{ item.crop_name }}</strong></td>
+                <td>{{ item.category|default:"-" }}</td>
+                <td>
+                    {% if item.farming_type == 'ORGANIC' %}
+                    <span class="tag tag-organic">Organic</span>
+                    {% else %}
+                    <span class="tag tag-inorganic">Inorganic</span>
+                    {% endif %}
+                </td>
+                <td><span class="tag tag-grade">{{ item.get_quality_grade_display }}</span></td>
+                <td>₹{{ item.price_per_unit }} / {{ item.unit|default:"kg" }}</td>
+                <td>
+                    {{ item.quantity_available }} {{ item.unit|default:"kg" }}
+                    {% if item.is_low_stock %}
+                    <span style="display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px; font-size:0.75em; font-weight:700; background:#ffebee; color:#c62828; border:1px solid #ef9a9a;">Low Stock</span>
+                    {% endif %}
+                </td>
+                <td><strong>{{ item.status|default:"-" }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">No listings added by you yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Incoming Orders on Your Crops (Confirm / Waiting / Deliver / Cancel)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Buyer</th>
+                <th>Crop</th>
+                <th>Qty</th>
+                <th>Total Amount</th>
+                <th>Current Status</th>
+                <th>Update Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ord in incoming_orders %}
+            <tr>
+                <td>#{{ ord.id }}</td>
+                <td>{{ ord.buyer.full_name }} ({{ ord.buyer.phone }})</td>
+                <td>{{ ord.listing.crop_name }}</td>
+                <td>{{ ord.quantity }} {{ ord.listing.unit|default:"kg" }}</td>
+                <td>₹{{ ord.total_amount }}</td>
+                <td><strong>{{ ord.status }}</strong></td>
+                <td>
+                    <form method="post" style="display:flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_order_status">
+                        <input type="hidden" name="order_id" value="{{ ord.id }}">
+                        <select name="status">
+                            {% for code, label in status_choices %}
+                            <option value="{{ code }}" {% if ord.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn">Save</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">No orders received on your listings yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Crop Advisory &amp; Guidelines for Farmers</h3>
+    <p class="meta">Seasonal crop guidance, irrigation/pest care, and best agricultural practices.</p>
+
+    <form method="post" style="margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid #e2e8f0;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_advisory">
+        <p>
+            <label>Title: <input type="text" name="advisory_title" required placeholder="e.g. Rabi Irrigation Tip"></label>
+            <label style="margin-left:10px;">Crop: <input type="text" name="crop_name" required placeholder="e.g. Jowar"></label>
+            <label style="margin-left:10px;">Season: <input type="text" name="season" placeholder="e.g. Rabi"></label>
+            <label style="margin-left:10px;">Issue: <input type="text" name="issue_keyword" placeholder="e.g. Moisture"></label>
+        </p>
+        <p>
+            <textarea name="guidance_text" rows="2" style="width:100%;" required placeholder="Write practical crop guidance for farmers..."></textarea>
+        </p>
+        <button type="submit" class="btn">Add Crop Advisory</button>
+    </form>
+
+    {% for adv in advisories %}
+    <div style="padding:10px 0; border-bottom:1px solid #edf2f7;">
+        <strong>{{ adv.advisory_title }}</strong>
+        <div class="meta">Crop: {{ adv.crop_name }} | Season: {{ adv.season|default:"General" }} | Issue: {{ adv.issue_keyword|default:"-" }}</div>
+        <p style="margin:6px 0 0 0;">{{ adv.guidance_text }}</p>
+    </div>
+    {% empty %}
+    <p class="meta">No crop advisories available yet.</p>
+    {% endfor %}
+</div>
+{% else %}
+<div class="two-col">
+    <div class="card">
+        <h3>Farmer Login</h3>
+        <form method="post">
+            {% csrf_token %}
+            <p><label>Phone Number:<br><input type="text" name="phone" required placeholder="e.g. 9822001101" style="width:100%;"></label></p>
+            <p><label>Password / PIN:<br><input type="password" name="password" required placeholder="e.g. 1234" style="width:100%;"></label></p>
+            <button type="submit" class="btn">Login as Farmer</button>
+        </form>
+        <p class="meta" style="margin-top:12px;">
+            Demo PIN/Password: <code>1234</code><br>
+            Registered Farmers:
+            {% for f in farmers_list %}
+                {{ f.full_name }} (<code>{{ f.phone }}</code>){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+
+    <div class="card">
+        <h3>New Farmer Registration</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="register_farmer">
+            <p><label>Full Name:<br><input type="text" name="full_name" required placeholder="e.g. Suresh Jadhav" style="width:100%;"></label></p>
+            <p><label>Phone Number:<br><input type="text" name="phone" required placeholder="e.g. 9822001199" style="width:100%;"></label></p>
+            <p><label>Village / Taluka / District:<br><input type="text" name="location" placeholder="e.g. Sangola, Solapur" style="width:100%;"></label></p>
+            <p><label>Create Password / PIN:<br><input type="password" name="password" placeholder="Default: 1234" style="width:100%;"></label></p>
+            <button type="submit" class="btn">Register &amp; Open Dashboard</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

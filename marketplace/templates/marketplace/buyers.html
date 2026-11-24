@@ -1,0 +1,28 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Buyer Contact Details</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Buyer Name</th>
+            <th>Phone Number</th>
+            <th>Location</th>
+            <th>Total Orders</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for buyer in buyers %}
+        <tr>
+            <td>{{ buyer.full_name }}</td>
+            <td>{{ buyer.phone }}</td>
+            <td>{{ buyer.location|default:"-" }}</td>
+            <td>{{ buyer.orders.count }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No buyers found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

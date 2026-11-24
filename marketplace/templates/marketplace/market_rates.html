@@ -1,0 +1,44 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Market Yard &amp; Quality-Based Rates</h2>
+<p class="meta">Rates reflect quality grade adjustments (Grade A: +10%, Grade B: Base Rate, Grade C: -10%) across major market yards.</p>
+
+<form method="get" class="card">
+    <label>Crop: <input type="text" name="crop" value="{{ crop_query }}" placeholder="e.g. Jowar"></label>
+    <label style="margin-left:10px;">Category: <input type="text" name="category" value="{{ category_query }}" placeholder="e.g. Grains"></label>
+    <button type="submit" class="btn" style="margin-left:10px;">Filter</button>
+    <a href="{% url 'market_rates' %}" style="margin-left:8px;">Reset</a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Crop</th>
+            <th>Farming Type</th>
+            <th>Quality Grade</th>
+            <th>Farmer Base Rate</th>
+            <th>Quality-Adjusted Rate</th>
+            <th>Pune Mandi</th>
+            <th>Mumbai Mandi</th>
+            <th>Delhi Mandi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td><strong>{{ row.item.crop_name }}</strong></td>
+            <td>{{ row.item.get_farming_type_display }}</td>
+            <td>{{ row.item.get_quality_grade_display }}</td>
+            <td>₹{{ row.item.price_per_unit }} / {{ row.unit }}</td>
+            <td><strong>₹{{ row.quality_rate }} / {{ row.unit }}</strong></td>
+            <td>₹{{ row.pune_rate }} / {{ row.unit }}</td>
+            <td>₹{{ row.mumbai_rate }} / {{ row.unit }}</td>
+            <td>₹{{ row.delhi_rate }} / {{ row.unit }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">No rate records found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

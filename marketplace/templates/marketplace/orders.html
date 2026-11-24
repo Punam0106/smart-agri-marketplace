@@ -1,0 +1,55 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Order / Delivery Status</h2>
+
+{% if saved_message %}
+<div class="msg-ok">{{ saved_message }}</div>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Buyer</th>
+            <th>Crop Listing</th>
+            <th>Farmer Source</th>
+            <th>Quantity</th>
+            <th>Total Amount</th>
+            <th>Current Status</th>
+            {% if logged_in_farmer %}
+            <th>Update Status</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for ord in orders %}
+        <tr>
+            <td>#{{ ord.id }}</td>
+            <td>{{ ord.buyer.full_name }} ({{ ord.buyer.phone }})</td>
+            <td><strong>{{ ord.listing.crop_name }}</strong> ({{ ord.listing.get_farming_type_display }} • {{ ord.listing.get_quality_grade_display }})</td>
+            <td>{{ ord.listing.farmer.full_name }}{% if ord.listing.farmer.location %} ({{ ord.listing.farmer.location }}){% endif %}</td>
+            <td>{{ ord.quantity }} {{ ord.listing.unit|default:"kg" }}</td>
+            <td>₹{{ ord.total_amount }}</td>
+            <td><strong>{{ ord.status }}</strong></td>
+            {% if logged_in_farmer %}
+            <td>
+                <form method="post" style="display:flex; gap:6px; align-items:center;">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ ord.id }}">
+                    <select name="status">
+                        {% for code, label in status_choices %}
+                        <option value="{{ code }}" {% if ord.status == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn">Save</button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="{% if logged_in_farmer %}8{% else %}7{% endif %}">No orders found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

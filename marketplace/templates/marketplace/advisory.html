@@ -1,0 +1,50 @@
+﻿{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<h2>Crop Advisory</h2>
+
+{% if error_message %}
+<div class="msg-err">{{ error_message }}</div>
+{% endif %}
+
+{% if saved_message %}
+<div class="msg-ok">{{ saved_message }}</div>
+{% endif %}
+
+<form method="get" class="card">
+    <label>Crop: <input type="text" name="crop" value="{{ crop_query }}" placeholder="e.g. Onion, Pomegranate"></label>
+    <label style="margin-left:10px;">Season: <input type="text" name="season" value="{{ season_query }}" placeholder="e.g. Rabi, Kharif"></label>
+    <button type="submit" class="btn" style="margin-left:10px;">Search</button>
+    <a href="{% url 'crop_advisory' %}" style="margin-left:8px;">Reset</a>
+</form>
+
+{% if logged_in_farmer %}
+<div class="card">
+    <h3>Add Crop Advisory (Farmer: {{ logged_in_farmer.full_name }})</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_advisory">
+        <p>
+            <label>Title: <input type="text" name="advisory_title" required placeholder="e.g. Drip Irrigation Schedule"></label>
+            <label style="margin-left:10px;">Crop: <input type="text" name="crop_name" required placeholder="e.g. Pomegranate"></label>
+            <label style="margin-left:10px;">Season: <input type="text" name="season" placeholder="e.g. Rabi"></label>
+            <label style="margin-left:10px;">Issue: <input type="text" name="issue_keyword" placeholder="e.g. Watering"></label>
+        </p>
+        <p>
+            <textarea name="guidance_text" rows="2" style="width:100%;" required placeholder="Enter guidance for farmers..."></textarea>
+        </p>
+        <button type="submit" class="btn">Save Advisory</button>
+    </form>
+</div>
+{% endif %}
+
+{% for adv in advisories %}
+<div class="card">
+    <strong>{{ adv.advisory_title }}</strong>
+    <div class="meta">Crop: {{ adv.crop_name }} | Season: {{ adv.season|default:"General" }} | Issue: {{ adv.issue_keyword|default:"-" }}</div>
+    <p>{{ adv.guidance_text }}</p>
+</div>
+{% empty %}
+<p>No crop advisories found.</p>
+{% endfor %}
+{% endblock %}
